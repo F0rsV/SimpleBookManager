@@ -22,4 +22,10 @@
     <ProjectReference Include="..\SimpleBookManager.Core\SimpleBookManager.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="BooksTestLib.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

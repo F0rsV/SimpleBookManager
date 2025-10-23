@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<books>
+  <book>
+    <title>The Hobbit</title>
+    <author>J.R.R. Tolkien</author>
+    <pages>310</pages>
+  </book>
+  <book>
+    <title>The Lord of the Rings</title>
+    <author>J.R.R. Tolkien</author>
+    <pages>1178</pages>
+  </book>
+  <book>
+    <title>1984</title>
+    <author>George Orwell</author>
+    <pages>328</pages>
+  </book>
+  <book>
+    <title>Animal Farm</title>
+    <author>George Orwell</author>
+    <pages>112</pages>
+  </book>
+  <book>
+    <title>The Catcher in the Rye</title>
+    <author>J.D. Salinger</author>
+    <pages>277</pages>
+  </book>
+  <book>
+    <title>Fahrenheit 451</title>
+    <author>Ray Bradbury</author>
+    <pages>194</pages>
+  </book>
+  <book>
+    <title>To Kill a Mockingbird</title>
+    <author>Harper Lee</author>
+    <pages>281</pages>
+  </book>
+  <book>
+    <title>Pride and Prejudice</title>
+    <author>Jane Austen</author>
+    <pages>279</pages>
+  </book>
+  <book>
+    <title>Emma</title>
+    <author>Jane Austen</author>
+    <pages>474</pages>
+  </book>
+  <book>
+    <title>The Shining</title>
+    <author>Stephen King</author>
+    <pages>447</pages>
+  </book>
+  <book>
+    <title>It</title>
+    <author>Stephen King</author>
+    <pages>1138</pages>
+  </book>
+  <book>
+    <title>Misery</title>
+    <author>Stephen King</author>
+    <pages>320</pages>
+  </book>
+  <book>
+    <title>The Little Prince</title>
+    <author>Antoine de Saint-Exupery</author>
+    <pages>96</pages>
+  </book>
+  <book>
+    <title>The Alchemist</title>
+    <author>Paulo Coelho</author>
+    <pages>208</pages>
+  </book>
+  <book>
+    <title>Brave New World</title>
+    <author>Aldous Huxley</author>
+    <pages>288</pages>
+  </book>
+  <book>
+    <title>The Great Gatsby</title>
+    <author>F. Scott Fitzgerald</author>
+    <pages>180</pages>
+  </book>
+</books>
