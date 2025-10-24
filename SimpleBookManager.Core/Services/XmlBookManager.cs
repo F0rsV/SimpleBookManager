@@ -1,6 +1,6 @@
-﻿using SimpleBookManager.Core.Models;
+﻿using System.Xml.Serialization;
+using SimpleBookManager.Core.Models;
 using SimpleBookManager.Core.Services.Interfaces;
-using System.Xml.Linq;
 
 namespace SimpleBookManager.Core.Services
 {
@@ -9,29 +9,34 @@ namespace SimpleBookManager.Core.Services
         private readonly string _xmlFilePath;
         private readonly List<Book> _books = new();
 
-        public XmlBookManager(string xmlFilePath)
+        public XmlBookManager(string xmlFilePath, bool createIfNotExists = false)
         {
             _xmlFilePath = xmlFilePath;
 
-            // todo: maybe do not create file if no file found?
-            // ideas:
-            // 1) throw exception;
-            // 2) Do not do anything - manager will have empty book list, xml file will be created later when Save method is called
             if (!File.Exists(_xmlFilePath))
             {
-                var newDoc = new XDocument(new XElement("books"));
-                newDoc.Save(_xmlFilePath);
+                if (!createIfNotExists)
+                {
+                    throw new FileNotFoundException($"The file '{_xmlFilePath}' was not found.");
+                }
+
+                var emptyCatalogue = new BooksCatalogue();
+                var serializer = new XmlSerializer(typeof(BooksCatalogue));
+
+                using (var stream = File.Create(_xmlFilePath))
+                {
+                    serializer.Serialize(stream, emptyCatalogue);
+                }
             }
 
-            var doc = XDocument.Load(_xmlFilePath);
-
-            _books.AddRange(doc.Root?.Elements("book")
-                .Select(b => new Book()
+            using (var stream = File.OpenRead(_xmlFilePath))
+            {
+                var serializer = new XmlSerializer(typeof(BooksCatalogue));
+                if (serializer.Deserialize(stream) is BooksCatalogue catalogue && catalogue.Books != null)
                 {
-                    Title = b.Element("title")?.Value ?? string.Empty,
-                    Author = b.Element("author")?.Value ?? string.Empty,
-                    Pages = int.TryParse(b.Element("pages")?.Value, out var result) ? result : 0
-                }) ?? Enumerable.Empty<Book>());
+                    _books.AddRange(catalogue.Books);
+                }
+            }
         }
 
         public List<Book> GetBooks() => _books;
@@ -48,7 +53,7 @@ namespace SimpleBookManager.Core.Services
                 return authorCompare;
             });
 
-            return _books; // todo: should the list be returned besides beign sorted?
+            return _books;
         }
 
         public List<Book> SearchByName(string bookName)
@@ -63,13 +68,13 @@ namespace SimpleBookManager.Core.Services
 
         public void SaveBooks(string filepath)
         {
-            var doc = new XDocument(new XElement("books", _books
-                .Select(b => new XElement("book",
-                    new XElement("title", b.Title),
-                    new XElement("author", b.Author),
-                    new XElement("pages", b.Pages)))));
+            var serializer = new XmlSerializer(typeof(BooksCatalogue));
+            var catalogue = new BooksCatalogue { Books = _books };
 
-            doc.Save(filepath);
+            using (var stream = File.Create(filepath))
+            {
+                serializer.Serialize(stream, catalogue);
+            }
         }
     }
 }

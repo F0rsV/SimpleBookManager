@@ -10,8 +10,5 @@ namespace SimpleBookManager.Core.Services.Interfaces
         List<Book> SearchByName(string bookName);
         void SaveBooks();
         void SaveBooks(string filepath);
-
-        // todo: methods that could be implemented in future:
-        // UpdateBook, RemoveBook
     }
 }

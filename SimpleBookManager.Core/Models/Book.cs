@@ -1,9 +1,17 @@
-﻿namespace SimpleBookManager.Core.Models
+﻿using System.Xml.Serialization;
+
+namespace SimpleBookManager.Core.Models
 {
+    [XmlRoot("book")]
     public class Book
     {
-        public string? Title { get; set; }
-        public string? Author { get; set; }
+        [XmlElement("title")]
+        public string Title { get; set; } = string.Empty;
+
+        [XmlElement("author")]
+        public string Author { get; set; } = string.Empty;
+
+        [XmlElement("pages")]
         public int Pages { get; set; }
 
         public Book() { }
