@@ -7,7 +7,7 @@ namespace SimpleBookManager.Core.Services
     public class XmlBookManager : IBookManager
     {
         private readonly string _xmlFilePath;
-        private readonly List<Book> _books = new();
+        private readonly BooksCatalogue _booksCatalogue = new();
 
         public XmlBookManager(string xmlFilePath, bool createIfNotExists = false)
         {
@@ -20,32 +20,45 @@ namespace SimpleBookManager.Core.Services
                     throw new FileNotFoundException($"The file '{_xmlFilePath}' was not found.");
                 }
 
-                var emptyCatalogue = new BooksCatalogue();
                 var serializer = new XmlSerializer(typeof(BooksCatalogue));
 
                 using (var stream = File.Create(_xmlFilePath))
                 {
-                    serializer.Serialize(stream, emptyCatalogue);
+                    serializer.Serialize(stream, _booksCatalogue);
                 }
             }
 
             using (var stream = File.OpenRead(_xmlFilePath))
             {
                 var serializer = new XmlSerializer(typeof(BooksCatalogue));
-                if (serializer.Deserialize(stream) is BooksCatalogue catalogue && catalogue.Books != null)
+
+                BooksCatalogue? catalogue;
+                try
                 {
-                    _books.AddRange(catalogue.Books);
+                    catalogue = serializer.Deserialize(stream) as BooksCatalogue;
                 }
+                catch (InvalidOperationException ex)
+                {
+                    throw new InvalidDataException("Invalid file format", ex);
+                }
+
+                if (catalogue == null)
+                {
+                    throw new InvalidDataException("Invalid file format");
+                }
+
+                _booksCatalogue.Books.AddRange(catalogue.Books);
             }
+
         }
 
-        public List<Book> GetBooks() => _books;
+        public List<Book> GetBooks() => _booksCatalogue.Books;
 
-        public void AddBook(Book book) => _books.Add(book);
+        public void AddBook(Book book) => _booksCatalogue.Books.Add(book);
 
         public List<Book> SortAlphabetically()
         {
-            _books.Sort((a, b) =>
+            _booksCatalogue.Books.Sort((a, b) =>
             {
                 var authorCompare = string.Compare(a.Author, b.Author, true);
                 if (authorCompare == 0)
@@ -53,12 +66,12 @@ namespace SimpleBookManager.Core.Services
                 return authorCompare;
             });
 
-            return _books;
+            return _booksCatalogue.Books;
         }
 
         public List<Book> SearchByName(string bookName)
         {
-            return _books.Where(b => b.Title.Contains(bookName, StringComparison.OrdinalIgnoreCase)).ToList();
+            return _booksCatalogue.Books.Where(b => b.Title.Contains(bookName, StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
         public void SaveBooks()
@@ -69,11 +82,10 @@ namespace SimpleBookManager.Core.Services
         public void SaveBooks(string filepath)
         {
             var serializer = new XmlSerializer(typeof(BooksCatalogue));
-            var catalogue = new BooksCatalogue { Books = _books };
 
             using (var stream = File.Create(filepath))
             {
-                serializer.Serialize(stream, catalogue);
+                serializer.Serialize(stream, _booksCatalogue);
             }
         }
     }
