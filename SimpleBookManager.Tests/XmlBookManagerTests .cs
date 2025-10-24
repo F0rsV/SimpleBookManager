@@ -62,6 +62,28 @@ namespace SimpleBookManager.Tests
         }
 
         [Fact]
+        public void Constructor_InvalidXml_ThrowsInvalidDataException()
+        {
+            var invalidXmlPath = Path.Combine(Directory.GetCurrentDirectory(), "InvalidFile.xml");
+            File.WriteAllText(invalidXmlPath, "<NotBooksCatalogue></NotBooksCatalogue>");
+
+            Assert.Throws<InvalidDataException>(() => new XmlBookManager(invalidXmlPath));
+
+            File.Delete(invalidXmlPath);
+        }
+
+        [Fact]
+        public void Constructor_EmptyFile_ThrowsInvalidDataException()
+        {
+            var emptyPath = Path.Combine(Directory.GetCurrentDirectory(), "EmptyFile.xml");
+            File.WriteAllText(emptyPath, string.Empty);
+
+            Assert.Throws<InvalidDataException>(() => new XmlBookManager(emptyPath));
+
+            File.Delete(emptyPath);
+        }
+
+        [Fact]
         public void AddBook_ValidBook_AddsBookToInternalList()
         {
             var manager = new XmlBookManager(_testFilePath);
@@ -193,7 +215,7 @@ namespace SimpleBookManager.Tests
             manager.SaveBooks();
 
             BooksCatalogue catalogue;
-            using (var stream = File.OpenRead(_tempFilePath))
+            using (var stream = File.OpenRead(copyPath))
             {
                 var serializer = new XmlSerializer(typeof(BooksCatalogue));
                 catalogue = (BooksCatalogue)serializer.Deserialize(stream)!;
