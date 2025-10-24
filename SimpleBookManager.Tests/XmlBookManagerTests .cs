@@ -1,6 +1,6 @@
-﻿using SimpleBookManager.Core.Models;
+﻿using System.Xml.Serialization;
+using SimpleBookManager.Core.Models;
 using SimpleBookManager.Core.Services;
-using System.Xml.Linq;
 
 namespace SimpleBookManager.Tests
 {
@@ -35,17 +35,30 @@ namespace SimpleBookManager.Tests
         }
 
         [Fact]
-        public void Constructor_FileDoesNotExist_CreatesNewFileAndEmptyList()
+        public void Constructor_FileDoesNotExistWithoutFlag_ThrowsException()
         {
             var missingPath = Path.Combine(Directory.GetCurrentDirectory(), "NonExistingFile.xml");
 
             if (File.Exists(missingPath))
                 File.Delete(missingPath);
 
-            var manager = new XmlBookManager(missingPath);
+            Assert.Throws<FileNotFoundException>(() => new XmlBookManager(missingPath));
+        }
+
+        [Fact]
+        public void Constructor_FileDoesNotExistWithFlag_CreatesFileEmptyCatalogue()
+        {
+            var missingPath = Path.Combine(Directory.GetCurrentDirectory(), "NewEmptyFile.xml");
+
+            if (File.Exists(missingPath))
+                File.Delete(missingPath);
+
+            var manager = new XmlBookManager(missingPath, true);
 
             Assert.True(File.Exists(missingPath));
             Assert.Empty(manager.GetBooks());
+
+            File.Delete(missingPath);
         }
 
         [Fact]
@@ -137,23 +150,34 @@ namespace SimpleBookManager.Tests
 
             Assert.True(File.Exists(_tempFilePath));
 
-            var newDoc = XDocument.Load(_tempFilePath);
-            Assert.Equal("books", newDoc.Root?.Name.ToString());
+            BooksCatalogue catalogue;
+            using (var stream = File.OpenRead(_tempFilePath))
+            {
+                var serializer = new XmlSerializer(typeof(BooksCatalogue));
+                catalogue = (BooksCatalogue)serializer.Deserialize(stream)!;
+            }
+
+            Assert.NotNull(catalogue);
+            Assert.NotNull(catalogue.Books);
         }
 
         [Fact]
-        public void SaveBooks_AfterAddingBook_PersistsNewBookToFile()
+        public void SaveBooks_AfterAddingBook_NewBookSavedToFile()
         {
             var manager = new XmlBookManager(_testFilePath);
-            var newBook = new Book("Newly Added", "Tester", 250);
+            var newBook = new Book("New Book", "New Author", 227);
             manager.AddBook(newBook);
 
             manager.SaveBooks(_tempFilePath);
 
-            var doc = XDocument.Load(_tempFilePath);
-            var titles = doc.Root?.Elements("book").Select(e => e.Element("title")?.Value).ToList();
+            BooksCatalogue catalogue;
+            using (var stream = File.OpenRead(_tempFilePath))
+            {
+                var serializer = new XmlSerializer(typeof(BooksCatalogue));
+                catalogue = (BooksCatalogue)serializer.Deserialize(stream)!;
+            }
 
-            Assert.Contains("Newly Added", titles);
+            Assert.Contains(catalogue.Books, b => b.Title == "New Book" && b.Author == "New Author" && b.Pages == 227);
         }
 
         [Fact]
@@ -163,16 +187,19 @@ namespace SimpleBookManager.Tests
             File.Copy(_testFilePath, copyPath, true);
 
             var manager = new XmlBookManager(copyPath);
-            var newBook = new Book("Temp Book", "Tester", 111);
+            var newBook = new Book("New Book", "New Author", 227);
             manager.AddBook(newBook);
 
             manager.SaveBooks();
 
-            var doc = XDocument.Load(copyPath);
-            var hasNew = doc.Root?.Elements("book").Any(b => b.Element("title")?.Value == "Temp Book");
+            BooksCatalogue catalogue;
+            using (var stream = File.OpenRead(_tempFilePath))
+            {
+                var serializer = new XmlSerializer(typeof(BooksCatalogue));
+                catalogue = (BooksCatalogue)serializer.Deserialize(stream)!;
+            }
 
-            Assert.True(hasNew);
-
+            Assert.Contains(catalogue.Books, b => b.Title == "New Book");
             File.Delete(copyPath);
         }
     }
